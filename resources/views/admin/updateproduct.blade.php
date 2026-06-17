@@ -9,6 +9,15 @@
         </div>
     @endif
     <div class="container-fluid">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <form action="{{route('admin.postupdateproduct',$product->id)}}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="text" name="product_title" value="{{$product->product_title}}"> <br> <br>

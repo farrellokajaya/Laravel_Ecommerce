@@ -11,118 +11,157 @@ use Stripe;
 
 class UserController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         if (Auth::check() && Auth::user()->user_type=="user"){
             return view('dashboard');
         } 
-        else if (Auth::check() && Auth::user()->user_type=="admin"){
+
+        if (Auth::check() && Auth::user()->user_type=="admin"){
             return view('admin.dashboard');
-
         }
+
+        return redirect()->route('login');
     }
 
-    public function home(){
-        if(Auth::check()){
-            $count = ProductCart::where('user_id',Auth::id())->count();
-        } 
-        else {
-            $count='';
-        }
-        $products = Product::latest()->take(2)->get();
-        return view('index',compact('products','count'));
+    public function home()
+    {
+        $count = $this->getCartCount();
+
+        $products = Product::where('product_quantity', '>', 0)
+            ->latest()
+            ->take(2)
+            ->get();
+
+        return view('index', compact('products', 'count'));
     }
 
-    public function productDetails($id){
-        if(Auth::check()){
-            $count = ProductCart::where('user_id',Auth::id())->count();
-        } 
-        else {
-            $count='';
-        }
-        $product = Product::findOrFail($id);
-        return view('product_details', compact('product','count'));
+    public function productDetails($id)
+    {
+        $count = $this->getCartCount();
+
+        $product = Product::where('product_quantity', '>', 0)
+            ->findOrFail($id);
+
+        return view('product_details', compact('product', 'count'));
     }
 
-    public function allProducts(){
-        if(Auth::check()){
-            $count = ProductCart::where('user_id',Auth::id())->count();
-        } 
-        else {
-            $count='';
-        }
-        $products = Product::all();
-        return view('allproducts',compact('products','count'));
+    public function allProducts()
+    {
+        $count = $this->getCartCount();
+
+        $products = Product::where('product_quantity', '>', 0)
+            ->latest()
+            ->get();
+
+        return view('allproducts', compact('products', 'count'));
     }
 
-    public function addToCart($id){
-        $product = Product::findOrFail($id);
+    public function addToCart($id)
+    {
+        $product = Product::where('product_quantity', '>', 0)
+            ->findOrFail($id);
+        
+        $existingCart = ProductCart::where('user_id', Auth::id())
+            ->where('product_id', $product->id)
+            ->first();
+                
+        if ($existingCart) {
+            return redirect()
+                ->back()
+                ->with('cart_message', 'Product already exists in your cart.');
+        }
         $product_cart = new ProductCart();
         $product_cart->user_id = Auth::id();
         $product_cart->product_id = $product->id;
-
         $product_cart->save();
-        return redirect()->back()->with('cart_message','Added To The Cart');
+
+        return redirect()
+            ->back()
+            ->with('cart_message','Added To The Cart');
 
     }
 
-    public function cartProduct(){
-        if(Auth::check()){
-            $count = ProductCart::where('user_id',Auth::id())->count();
-            $cart = ProductCart::where('user_id',Auth::id())->get();
-        } 
-        else {
-            $count='';
-        }
+    public function cartProduct()
+    {
+        $count = $this->getCartCount();
 
-        return view('viewcartproducts',compact('count', 'cart'));
+        $cart = ProductCart::where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('viewcartproducts', compact('count', 'cart'));
     }
 
-    public function removeCartProducts($id){
-        $cart_product = ProductCart::findOrFail($id);
+    public function removeCartProducts($id)
+    {
+        $cart_product = ProductCart::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->firstOrFail();
+
         $cart_product->delete();
-        return redirect()->back();
+
+        return redirect()
+            ->back()
+            ->with('cart_message', 'Product removed from cart.');
     }
 
-    public function confirmOrder(Request $request){
-        $cart_product_id=ProductCart::where('user_id',Auth::id())->get();
-        $address=$request->receiver_address;
-        $phone=$request->receiver_phone;
-        foreach($cart_product_id as $cart_product){  
+    public function confirmOrder(Request $request)
+    {
+        $request->validate([
+            'receiver_address' => 'required|string|max:500',
+            'receiver_phone' => 'required|string|max:20',
+        ]);
+
+        $cartProducts=ProductCart::where('user_id',Auth::id())->get();
+                
+        if ($cartProducts->isEmpty()) {
+            return redirect()
+                ->back()
+                ->with('confirm_order', 'Your cart is empty.');
+        }
+
+        foreach ($cartProducts as $cart_product) {
+            $product = Product::find($cart_product->product_id);
+
+            if (!$product || $product->product_quantity <= 0) {
+                continue;
+            }
+
             $order = new Order();
-            $order->receiver_address=$address;
-            $order->receiver_phone=$phone;
-            $order->user_id=Auth::id();
-            $order->product_id=$cart_product->product_id;
+            $order->receiver_address = $request->receiver_address;
+            $order->receiver_phone = $request->receiver_phone;
+            $order->user_id = Auth::id();
+            $order->product_id = $cart_product->product_id;
             $order->save();
+
+            $product->product_quantity = $product->product_quantity - 1;
+            $product->save();
         }
-        $cart=ProductCart::where('user_id',Auth::id())->get();
-        foreach($cart as $cart){
-            $cart_id=ProductCart::find($cart->id);
-            $cart_id->delete();
-        }
-        return redirect()->back()->with('confirm_order','Ordeer Confirm');
+
+        ProductCart::where('user_id', Auth::id())->delete();
+
+        return redirect()
+            ->back()
+            ->with('confirm_order', 'Order confirmed successfully.');
     }
 
     public function myOrders(){
-        $orders=Order::where('user_id',Auth::id())->get();
+        $orders=Order::where('user_id',Auth::id())
+            ->latest()
+            ->get();
+
         return view('viewmyorders',compact('orders'));
     }
 
     public function stripe($price){
-        if(Auth::check()){
-            $count = ProductCart::where('user_id',Auth::id())->count();
-            $cart = ProductCart::where('user_id',Auth::id())->get();
-        } 
-        else {
-            $count='';
-        }
+        $count = $this->getCartCount();
 
-        $price = $price;
-
-        return view('stripe',compact('count','price'));
+        return view('stripe', compact('count', 'price'));
     }
 
-    public function stripePost(Request $request){
+    public function stripePost(Request $request)
+    {
 
         Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
@@ -139,31 +178,32 @@ class UserController extends Controller
                 "description" => "Test payment from itsolutionstuff.com." 
 
         ]);
-        $cart_product_id=ProductCart::where('user_id',Auth::id())->get();
-        $address=$request->receiver_address;
-        $phone=$request->receiver_phone;
-        foreach($cart_product_id as $cart_product){  
+        $cartProducts=ProductCart::where('user_id',Auth::id())->get();
+
+        foreach ($cartProducts as $cart_product) {
             $order = new Order();
-            $order->receiver_address=$address;
-            $order->receiver_phone=$phone;
-            $order->user_id=Auth::id();
-            $order->product_id=$cart_product->product_id;
-            $order->payment_status="paid";
+            $order->receiver_address = $request->receiver_address;
+            $order->receiver_phone = $request->receiver_phone;
+            $order->user_id = Auth::id();
+            $order->product_id = $cart_product->product_id;
+            $order->payment_status = "paid";
             $order->save();
         }
-        $cart=ProductCart::where('user_id',Auth::id())->get();
-        foreach($cart as $cart){
-            $cart_id=ProductCart::find($cart->id);
-            $cart_id->delete();
-        } 
 
-      
+        ProductCart::where('user_id', Auth::id())->delete();
 
         Session::flash('success', 'Payment successful!');
 
-              
-
         return back();
-
     }
+
+    private function getCartCount()
+    {
+        if (Auth::check()) {
+            return ProductCart::where('user_id', Auth::id())->count();
+        }
+
+        return '';
+    }
+
 }

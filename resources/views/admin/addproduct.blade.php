@@ -10,6 +10,15 @@
         </div>
     @endif
     <div class="container-fluid">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <form action="{{route('admin.postaddproduct')}}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="text" name="product_title" placeholder="Enter Product Title here!"> <br> <br>

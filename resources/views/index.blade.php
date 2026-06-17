@@ -8,6 +8,11 @@
           Latest Products
         </h2>
       </div>
+      @if(session('cart_message'))
+        <div style="margin-bottom: 10px; padding: 10px; background-color: lightgreen; color: black;">
+          {{ session('cart_message') }}
+        </div>
+      @endif
       <div class="row">
         @foreach ($products as $product)
         <div class="col-sm-6 col-md-4 col-lg-3">
@@ -35,8 +40,13 @@
             </a>
             <!-- add to cart -->
               <div style="display: flex; justify-content: space-between;">
-                <a href="{{route('add_to_cart',$product->id )}}" style="background:blue; color: white; padding: 12px; border-radius: 12px;">Add To Cart</a>
-                <a href="{{route('stripe',$product->product_prices)}}" style="background:blue; color: white; padding: 12px; border-radius: 12px;">Pay Now</a>
+                <form action="{{ route('add_to_cart', $product->id) }}" method="POST">
+                  @csrf
+
+                  <button type="submit" class="btn btn-primary">
+                    Add To Cart
+                  </button>
+                </form>
               </div>
           </div>
         </div>

@@ -46,7 +46,7 @@
                     </td>
 
                     <td style="padding: 12px;">
-                        Rp {{ number_format($price, 0, ',', '.') }}
+                        Rp {{ number_format($cart_product->product->product_prices, 0, ',', '.') }}
                     </td>
 
                     <td style="padding: 12px;">

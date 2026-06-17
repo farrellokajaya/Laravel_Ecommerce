@@ -1,8 +1,13 @@
 @extends('maindesign')
 
-@section('all_products')
+@section('index')
 
     <div class="container">
+      <div class="heading_container heading_center">
+        <h2>
+          Latest Products
+        </h2>
+      </div>
       <div class="row">
         @foreach ($products as $product)
         <div class="col-sm-6 col-md-4 col-lg-3">
@@ -29,6 +34,11 @@
               </div>
             </a>
             <!-- add to cart -->
+            @if(session('cart_message'))
+              <div style="margin-bottom: 10px; padding: 10px; background-color: lightgreen; color: black;">
+                {{ session('cart_message') }}
+              </div>
+            @endif
               <div style="display: flex; justify-content: space-between;">
                 <form action="{{ route('add_to_cart', $product->id) }}" method="POST">
                   @csrf
@@ -37,10 +47,16 @@
                     Add To Cart
                   </button>
                 </form>
+                <a href="{{route('stripe',$product->product_prices)}}" style="background:blue; color: white; padding: 12px; border-radius: 12px;">Pay Now</a>
               </div>
           </div>
         </div>
         @endforeach
+      </div>
+      <div class="btn-box">
+        <a href="{{route('viewallproducts')}}">
+          View All Products
+        </a>
       </div>
     </div>
 

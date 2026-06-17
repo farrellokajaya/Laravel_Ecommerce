@@ -8,19 +8,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="all,follow">
     <!-- Bootstrap CSS-->
-    <link rel="stylesheet" href="{{ asset('admin/vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="admin/vendor/bootstrap/css/bootstrap.min.css">
     <!-- Font Awesome CSS-->
-    <link rel="stylesheet" href="{{ asset('admin/vendor/font-awesome/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="admin/vendor/font-awesome/css/font-awesome.min.css">
     <!-- Custom Font Icons CSS-->
-    <link rel="stylesheet" href="{{ asset('admin/css/font.css') }}">
+    <link rel="stylesheet" href="admin/css/font.css">
     <!-- Google fonts - Muli-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Muli:300,400,700">
     <!-- theme stylesheet-->
-    <link rel="stylesheet" href="{{ asset('admin/css/style.default.css') }}" id="theme-stylesheet">
+    <link rel="stylesheet" href="admin/css/style.default.css" id="theme-stylesheet">
     <!-- Custom stylesheet - for your changes-->
-    <link rel="stylesheet" href="{{ asset('admin/css/custom.css') }}">
+    <link rel="stylesheet" href="admin/css/custom.css">
     <!-- Favicon-->
-    <link rel="shortcut icon" href="{{ asset('admin/img/favicon.ico') }}">
+    <link rel="shortcut icon" href="admin/img/favicon.ico">
     <!-- Tweaks for older IEs--><!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
@@ -30,8 +30,7 @@
       <nav class="navbar navbar-expand-lg">
         <div class="container-fluid d-flex align-items-center justify-content-between">
           <div class="navbar-header">
-            <!-- Navbar Header-->
-            <a href="{{ route('admin.dashboard') }}" class="navbar-brand">
+            <!-- Navbar Header--><a href="index.html" class="navbar-brand">
               <div class="brand-text brand-big visible text-uppercase"><strong class="text-primary">Dark</strong><strong>Admin</strong></div>
               <div class="brand-text brand-sm"><strong class="text-primary">D</strong><strong>A</strong></div></a>
             <!-- Sidebar Toggle Btn-->
@@ -67,15 +66,15 @@
         </div>
         <!-- Sidebar Navidation Menus--><span class="heading">Main</span>
         <ul class="list-unstyled">
-                <li class="active"><a href="{{ route('admin.dashboard') }}"><i class="icon-home"></i>Home</a></li>
-                <li><a href="#categoryDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-windows"></i>Category</a>
-                  <ul id="categoryDropdown" class="collapse list-unstyled ">
+                <li class="active"><a href="index.html"> <i class="icon-home"></i>Home </a></li>
+                <li><a href="#exampledropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-windows"></i>Category</a>
+                  <ul id="exampledropdownDropdown" class="collapse list-unstyled ">
                     <li><a href="{{route('admin.addcategory')}}">Add Category</a></li>
                     <li><a href="{{route('admin.viewcategory')}}">View Category</a></li>
                   </ul>
                 </li>
-                <li><a href="#productdropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-windows"></i>Product</a>
-                  <ul id="productdropdownDropdown" class="collapse list-unstyled ">
+                <li><a href="#exampledropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-windows"></i>Product</a>
+                  <ul id="exampledropdownDropdown" class="collapse list-unstyled ">
                     <li><a href="{{route('admin.addproduct')}}">Add Product</a></li>
                     <li><a href="{{route('admin.viewproduct')}}">View Product</a></li>
                     <li><a href="{{route('admin.vieworder')}}">View Order</a></li>
@@ -88,7 +87,7 @@
       <div class="page-content">
         <div class="page-header">
           <div class="container-fluid">
-            <h2 class="h5 no-margin-bottom">Admin Dashboard</h2>
+            <h2 class="h5 no-margin-bottom">Admin ashboard</h2>
           </div>
         </div>
         <section class="no-padding-top no-padding-bottom">
@@ -101,8 +100,6 @@
           @yield('update_category')
 
           @yield('add_product')
-
-          @yield('view_product')
 
           @yield('update_product')
 
@@ -121,13 +118,13 @@
       </div>
     </div>
     <!-- JavaScript files-->
-    <script src="{{ asset('admin/vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/popper.js/umd/popper.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/jquery.cookie/jquery.cookie.js') }}"></script>
-    <script src="{{ asset('admin/vendor/chart.js/Chart.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/jquery-validation/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('admin/js/charts-home.js') }}"></script>
-    <script src="{{ asset('admin/js/front.js') }}"></script>
+    <script src="admin/vendor/jquery/jquery.min.js"></script>
+    <script src="admin/vendor/popper.js/umd/popper.min.js"> </script>
+    <script src="admin/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="admin/vendor/jquery.cookie/jquery.cookie.js"> </script>
+    <script src="admin/vendor/chart.js/Chart.min.js"></script>
+    <script src="admin/vendor/jquery-validation/jquery.validate.min.js"></script>
+    <script src="admin/js/charts-home.js"></script>
+    <script src="admin/js/front.js"></script>
   </body>
 </html>

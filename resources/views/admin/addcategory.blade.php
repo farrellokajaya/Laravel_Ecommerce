@@ -8,6 +8,15 @@
         </div>
     @endif
     <div class="container-fluid">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <form action="{{route('admin.postaddcategory')}}" method="POST">
             @csrf
             <input type="text" name="category" placeholder="Enter Category Name!">

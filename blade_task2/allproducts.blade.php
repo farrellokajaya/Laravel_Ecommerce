@@ -2,6 +2,8 @@
 
 @section('all_products')
 
+@extends('maindesign')
+
     <div class="container">
       <div class="row">
         @foreach ($products as $product)
@@ -37,6 +39,7 @@
                     Add To Cart
                   </button>
                 </form>
+                <a href="{{route('stripe',$product->product_prices)}}" style="background:blue; color: white; padding: 12px; border-radius: 12px;">Pay Now</a>
               </div>
           </div>
         </div>

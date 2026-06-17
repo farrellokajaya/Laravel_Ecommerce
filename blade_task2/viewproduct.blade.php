@@ -1,9 +1,15 @@
 @extends('admin.maindesign')
 
 <base href="/public">
-@section('view_product')
+@section('view_category')
 
-@if(session('deleteproduct_message'))
+@if(@session('deletecategory_message'))
+    <div style="margin-bottom: 10px; color: black; background-color: orangered;">
+        {{session('deletecategory_message')}}
+    </div>
+@endif
+
+@if(@session('deleteproduct_message'))
     <div style="margin-bottom: 10px; color: black; background-color: orangered;">
         {{session('deleteproduct_message')}}
     </div>
@@ -19,7 +25,7 @@
     <thead>
         <tr style="background-color: #f2f2f2;">
             <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                Product Title
+                Product Ttitle
             </th>
             <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
                 Product Description
@@ -28,7 +34,7 @@
                 Product Quantity
             </th>
             <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                Product Price
+                Product Prices
             </th>
             <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
                 Product Image
@@ -66,11 +72,9 @@
             </td>
         </tr>
         @endforeach
+
+        {{$products->links()}}
     </tbody>
 </table>
-
-<div style="margin-top: 20px;">
-    {{ $products->links() }}
-</div>
 
 @endsection

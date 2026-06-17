@@ -90,7 +90,7 @@
         <h2>DESCRIPTION</h2>
 
         <div class="description-content">
-            {$product->product_description}
+            {!! $product->product_description !!}
         </div>
 
     </section>
