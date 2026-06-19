@@ -1,82 +1,68 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('User Dashboard') }}
-        </h2>
-    </x-slot>
+@extends('maindesign')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+@section('title', 'My Orders — Giftos')
 
-                    <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
-                        <thead>
-                            <tr style="background-color: #f2f2f2;">
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Customer Name
-                                </th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Address
-                                </th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Phone Number
-                                </th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Product
-                                </th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Product Price
-                                </th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Product Image
-                                </th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd;">
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach($orders as $order)
-                                <tr style="border-bottom: 1px solid #ddd;">
-                                    <td style="padding: 12px;">
-                                        {{ $order->user->name }}
-                                    </td>
-
-                                    <td style="padding: 12px;">
-                                        {{ $order->receiver_address }}
-                                    </td>
-
-                                    <td style="padding: 12px;">
-                                        {{ $order->receiver_phone }}
-                                    </td>
-
-                                    <td style="padding: 12px;">
-                                        {{ $order->product->product_title }}
-                                    </td>
-
-                                    <td style="padding: 12px;">
-                                        {{ $order->product->product_prices }}
-                                    </td>
-
-                                    <td style="padding: 12px;">
-                                        <img
-                                            src="{{ asset('products/' . $order->product->product_image) }}"
-                                            style="width: 150px;"
-                                            alt="Product Image"
-                                        >
-                                    </td>
-                                    <td style="padding: 12px;">
-                                        {{$order->status}}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                </div>
+@section('content')
+<section class="page-section">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <span class="eyebrow">Order history</span>
+                <h1>My orders</h1>
+                <p>Track every successfully paid order and its current fulfilment status.</p>
             </div>
+            <a class="button button-light button-small" href="{{ route('viewallproducts') }}">Shop again</a>
         </div>
+
+        @if($orders->isNotEmpty())
+            <div class="order-list">
+                @foreach($orders as $order)
+                    @php
+                        $status = strtolower($order->status ?? 'pending');
+                        $paymentStatus = strtolower($order->payment_status ?? 'paid');
+                        $quantity = (int) ($order->quantity ?? 1);
+                        $unitPrice = (float) (($order->unit_price ?? 0) > 0 ? $order->unit_price : ($order->product->product_prices ?? 0));
+                        $lineTotal = (float) (($order->total_price ?? 0) > 0 ? $order->total_price : $unitPrice * $quantity);
+                    @endphp
+                    <article class="order-card">
+                        <div class="order-image">
+                            @if($order->product)
+                                <img src="/products/{{ $order->product->product_image }}" alt="{{ $order->product->product_title }}">
+                            @endif
+                        </div>
+
+                        <div class="order-main">
+                            <span class="product-category">Order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</span>
+                            <h3>{{ $order->product->product_title ?? 'Product unavailable' }}</h3>
+                            <p>Quantity: {{ $quantity }} × ${{ number_format($unitPrice, 2, '.', ',') }}</p>
+                            <div class="order-price">${{ number_format($lineTotal, 2, '.', ',') }}</div>
+                        </div>
+
+                        <div class="order-shipping">
+                            <strong>Delivery details</strong>
+                            <p>{{ $order->receiver_name ?: ($order->user->name ?? '') }}</p>
+                            <p>{{ $order->receiver_phone }}</p>
+                            <p>{{ $order->receiver_address }}</p>
+                        </div>
+
+                        <div class="order-status">
+                            <span class="status-badge status-{{ $status }}">{{ $order->status ?? 'Pending' }}</span>
+                            <span class="status-badge status-{{ $paymentStatus }}">Payment {{ $order->payment_status ?? 'Paid' }}</span>
+                            <span class="order-date">{{ optional($order->created_at)->format('d M Y, H:i') }}</span>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        @else
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg viewBox="0 0 24 24"><path d="M6 3h12v18H6z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+                </div>
+                <h2>No orders yet</h2>
+                <p>Your successfully paid orders will appear here.</p>
+                <a class="button button-dark" href="{{ route('viewallproducts') }}">Start shopping</a>
+            </div>
+        @endif
     </div>
-</x-app-layout>
+</section>
+@endsection

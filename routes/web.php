@@ -9,7 +9,7 @@ use App\Http\Controllers\AdminController;
 
 /* Public Routes */
 
-Route::get('/',[UserController::class,'home'])->name('index');
+Route::get('/',[UserController::class,'home'])->name('home');
 
 Route::get('/product_details/{id}',[UserController::class,'productDetails'])->name('product_details');
 
@@ -20,7 +20,7 @@ Route::get('/allproducts',[UserController::class,'allProducts'])->name('viewallp
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [UserController::class, 'index'])
         ->name('dashboard');
-
+    
     Route::get('/myorders', [UserController::class, 'myOrders'])
         ->name('myorders');
 
@@ -33,14 +33,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/removecartproducts/{id}',[UserController::class,'removeCartProducts'])
         ->name('removecartproducts');
     
-    Route::post('/confirm_order',[UserController::class,'confirmOrder'])
-        ->name('confirm_order');
-    
-    Route::get('/stripe/{price}', [UserController::class, 'stripe'])
-        ->name('stripe');
+    Route::get('/checkout', [UserController::class, 'checkout'])
+        ->name('checkout');
 
-    Route::post('/stripe', [UserController::class, 'stripePost'])
-        ->name('stripe.post');
+    Route::post('/checkout/payment', [UserController::class, 'checkoutPayment'])
+        ->name('checkout.payment');
 });
 
 /* Profile Routes */

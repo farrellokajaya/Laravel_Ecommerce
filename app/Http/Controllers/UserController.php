@@ -1,209 +1,305 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductCart;
-use App\Models\Order;
-use Session;
-use Stripe;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     public function index()
     {
-        if (Auth::check() && Auth::user()->user_type=="user"){
-            return view('dashboard');
-        } 
-
-        if (Auth::check() && Auth::user()->user_type=="admin"){
-            return view('admin.dashboard');
+        if (auth()->user()->user_type === 'admin') {
+            return redirect()->route('admin.dashboard');
         }
 
-        return redirect()->route('login');
+        return view('dashboard');
     }
 
     public function home()
     {
-        $count = $this->getCartCount();
-
         $products = Product::where('product_quantity', '>', 0)
             ->latest()
-            ->take(2)
+            ->take(8)
             ->get();
 
-        return view('index', compact('products', 'count'));
+        $categories = Product::where('product_quantity', '>', 0)
+            ->whereNotNull('product_category')
+            ->where('product_category', '!=', '')
+            ->select('product_category')
+            ->distinct()
+            ->orderBy('product_category')
+            ->take(8)
+            ->pluck('product_category');
+
+        return view('index', compact('products', 'categories'));
     }
 
     public function productDetails($id)
     {
-        $count = $this->getCartCount();
-
         $product = Product::where('product_quantity', '>', 0)
             ->findOrFail($id);
 
-        return view('product_details', compact('product', 'count'));
+        return view('product_details', compact('product'));
     }
 
-    public function allProducts()
+    public function allProducts(Request $request)
     {
-        $count = $this->getCartCount();
+        $activeSearch = trim((string) $request->query('search', ''));
+        $activeCategory = trim((string) $request->query('category', ''));
 
-        $products = Product::where('product_quantity', '>', 0)
+        $query = Product::query()
+            ->where('product_quantity', '>', 0);
+
+        if ($activeSearch !== '') {
+            $query->where(function ($productQuery) use ($activeSearch) {
+                $productQuery
+                    ->where('product_title', 'like', '%' . $activeSearch . '%')
+                    ->orWhere('product_description', 'like', '%' . $activeSearch . '%')
+                    ->orWhere('product_category', 'like', '%' . $activeSearch . '%');
+            });
+        }
+
+        if ($activeCategory !== '') {
+            $query->where('product_category', $activeCategory);
+        }
+
+        $products = $query
             ->latest()
-            ->get();
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('allproducts', compact('products', 'count'));
+        $categories = Product::where('product_quantity', '>', 0)
+            ->whereNotNull('product_category')
+            ->where('product_category', '!=', '')
+            ->select('product_category')
+            ->distinct()
+            ->orderBy('product_category')
+            ->pluck('product_category');
+
+        return view('allproducts', compact(
+            'products',
+            'categories',
+            'activeSearch',
+            'activeCategory'
+        ));
     }
 
-    public function addToCart($id)
+    public function addToCart(Request $request, $id)
     {
         $product = Product::where('product_quantity', '>', 0)
             ->findOrFail($id);
-        
+
+        $quantity = max(1, (int) $request->input('quantity', 1));
+        $quantity = min($quantity, (int) $product->product_quantity);
+
         $existingCart = ProductCart::where('user_id', Auth::id())
             ->where('product_id', $product->id)
             ->first();
-                
+
         if ($existingCart) {
-            return redirect()
-                ->back()
-                ->with('cart_message', 'Product already exists in your cart.');
+            $existingCart->quantity = min(
+                (int) $product->product_quantity,
+                (int) $existingCart->quantity + $quantity
+            );
+            $existingCart->save();
+
+            $message = 'Product quantity updated in your cart.';
+        } else {
+            ProductCart::create([
+                'user_id' => Auth::id(),
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+            ]);
+
+            $message = 'Product added to your cart.';
         }
-        $product_cart = new ProductCart();
-        $product_cart->user_id = Auth::id();
-        $product_cart->product_id = $product->id;
-        $product_cart->save();
+
+        if ($request->input('action') === 'checkout') {
+            return redirect()
+                ->route('checkout')
+                ->with('cart_message', $message);
+        }
 
         return redirect()
             ->back()
-            ->with('cart_message','Added To The Cart');
-
+            ->with('cart_message', $message);
     }
 
     public function cartProduct()
     {
-        $count = $this->getCartCount();
-
         $cart = ProductCart::where('user_id', Auth::id())
+            ->with('product')
             ->latest()
             ->get();
 
-        return view('viewcartproducts', compact('count', 'cart'));
+        return view('viewcartproducts', compact('cart'));
     }
 
     public function removeCartProducts($id)
     {
-        $cart_product = ProductCart::where('user_id', Auth::id())
+        $cartProduct = ProductCart::where('user_id', Auth::id())
             ->where('id', $id)
             ->firstOrFail();
 
-        $cart_product->delete();
+        $cartProduct->delete();
 
         return redirect()
             ->back()
-            ->with('cart_message', 'Product removed from cart.');
+            ->with('cart_message', 'Product removed from your cart.');
     }
 
-    public function confirmOrder(Request $request)
+    public function myOrders()
     {
-        $request->validate([
-            'receiver_address' => 'required|string|max:500',
-            'receiver_phone' => 'required|string|max:20',
-        ]);
-
-        $cartProducts=ProductCart::where('user_id',Auth::id())->get();
-                
-        if ($cartProducts->isEmpty()) {
-            return redirect()
-                ->back()
-                ->with('confirm_order', 'Your cart is empty.');
-        }
-
-        foreach ($cartProducts as $cart_product) {
-            $product = Product::find($cart_product->product_id);
-
-            if (!$product || $product->product_quantity <= 0) {
-                continue;
-            }
-
-            $order = new Order();
-            $order->receiver_address = $request->receiver_address;
-            $order->receiver_phone = $request->receiver_phone;
-            $order->user_id = Auth::id();
-            $order->product_id = $cart_product->product_id;
-            $order->save();
-
-            $product->product_quantity = $product->product_quantity - 1;
-            $product->save();
-        }
-
-        ProductCart::where('user_id', Auth::id())->delete();
-
-        return redirect()
-            ->back()
-            ->with('confirm_order', 'Order confirmed successfully.');
-    }
-
-    public function myOrders(){
-        $orders=Order::where('user_id',Auth::id())
+        $orders = Order::where('user_id', Auth::id())
+            ->with(['product', 'user'])
             ->latest()
             ->get();
 
-        return view('viewmyorders',compact('orders'));
+        return view('viewmyorders', compact('orders'));
     }
 
-    public function stripe($price){
-        $count = $this->getCartCount();
-
-        return view('stripe', compact('count', 'price'));
-    }
-
-    public function stripePost(Request $request)
+    public function checkout()
     {
+        $cart = ProductCart::where('user_id', Auth::id())
+            ->with('product')
+            ->get();
 
-        Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+        if ($cart->isEmpty()) {
+            return redirect()
+                ->route('cartproduct')
+                ->with('cart_message', 'Your cart is empty.');
+        }
 
-    
+        $total = 0;
 
-        Stripe\Charge::create ([
+        foreach ($cart as $cartProduct) {
+            if (!$cartProduct->product) {
+                return redirect()
+                    ->route('cartproduct')
+                    ->with('cart_message', 'Some products in your cart are no longer available.');
+            }
 
-                "amount" => 100 * 100,
+            $quantity = (int) ($cartProduct->quantity ?? 1);
 
-                "currency" => "usd",
+            if ($cartProduct->product->product_quantity < $quantity) {
+                return redirect()
+                    ->route('cartproduct')
+                    ->with('cart_message', $cartProduct->product->product_title . ' does not have enough stock.');
+            }
 
-                "source" => $request->stripeToken,
+            $total += $cartProduct->product->product_prices * $quantity;
+        }
 
-                "description" => "Test payment from itsolutionstuff.com." 
+        return view('stripe', compact('cart', 'total'));
+    }
 
+    public function checkoutPayment(Request $request)
+    {
+        $request->validate([
+            'receiver_name' => 'required|string|max:255',
+            'receiver_address' => 'required|string|max:500',
+            'receiver_phone' => 'required|string|max:20',
+            'stripeToken' => 'required|string',
         ]);
-        $cartProducts=ProductCart::where('user_id',Auth::id())->get();
 
-        foreach ($cartProducts as $cart_product) {
-            $order = new Order();
-            $order->receiver_address = $request->receiver_address;
-            $order->receiver_phone = $request->receiver_phone;
-            $order->user_id = Auth::id();
-            $order->product_id = $cart_product->product_id;
-            $order->payment_status = "paid";
-            $order->save();
+        $userId = Auth::id();
+
+        $cartProducts = ProductCart::where('user_id', $userId)
+            ->with('product')
+            ->get();
+
+        if ($cartProducts->isEmpty()) {
+            return redirect()
+                ->route('cartproduct')
+                ->with('cart_message', 'Your cart is empty.');
         }
 
-        ProductCart::where('user_id', Auth::id())->delete();
+        $total = 0;
 
-        Session::flash('success', 'Payment successful!');
+        foreach ($cartProducts as $cartProduct) {
+            $product = $cartProduct->product;
+            $quantity = (int) ($cartProduct->quantity ?? 1);
 
-        return back();
-    }
+            if (!$product) {
+                return redirect()
+                    ->route('cartproduct')
+                    ->with('cart_message', 'Some products are no longer available.');
+            }
 
-    private function getCartCount()
-    {
-        if (Auth::check()) {
-            return ProductCart::where('user_id', Auth::id())->count();
+            if ($product->product_quantity < $quantity) {
+                return redirect()
+                    ->route('cartproduct')
+                    ->with('cart_message', $product->product_title . ' does not have enough stock.');
+            }
+
+            $total += $product->product_prices * $quantity;
         }
 
-        return '';
-    }
+        try {
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
+            $charge = \Stripe\Charge::create([
+                'amount' => (int) round($total * 100),
+                'currency' => 'usd',
+                'source' => $request->stripeToken,
+                'description' => 'Ecommerce payment for user ID ' . $userId,
+            ]);
+
+            DB::transaction(function () use ($cartProducts, $request, $charge, $userId) {
+                foreach ($cartProducts as $cartProduct) {
+                    $product = Product::where('id', $cartProduct->product_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $quantity = (int) ($cartProduct->quantity ?? 1);
+
+                    if (!$product) {
+                        throw new \Exception('Product is no longer available.');
+                    }
+
+                    if ($product->product_quantity < $quantity) {
+                        throw new \Exception($product->product_title . ' does not have enough stock.');
+                    }
+
+                    $unitPrice = $product->product_prices;
+                    $totalPrice = $unitPrice * $quantity;
+
+                    $order = new Order();
+                    $order->receiver_name = $request->receiver_name;
+                    $order->receiver_address = $request->receiver_address;
+                    $order->receiver_phone = $request->receiver_phone;
+                    $order->user_id = $userId;
+                    $order->product_id = $product->id;
+                    $order->quantity = $quantity;
+                    $order->unit_price = $unitPrice;
+                    $order->total_price = $totalPrice;
+                    $order->payment_status = 'paid';
+                    $order->status = 'pending';
+                    $order->stripe_payment_id = $charge->id;
+                    $order->save();
+
+                    $product->product_quantity -= $quantity;
+                    $product->save();
+                }
+
+                ProductCart::where('user_id', $userId)->delete();
+            });
+
+            return redirect()
+                ->route('home')
+                ->with('payment_success', 'Your payment was successful and your order has been created.');
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('checkout')
+                ->withInput($request->only('receiver_name', 'receiver_address', 'receiver_phone'))
+                ->with('error', 'Payment failed: ' . $exception->getMessage());
+        }
+    }
 }

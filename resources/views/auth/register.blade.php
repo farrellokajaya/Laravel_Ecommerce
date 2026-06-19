@@ -1,52 +1,36 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
+    <div class="auth-card-header">
+        <h2>Create account</h2>
+        <p>Join Giftos to save your cart and track every order.</p>
+    </div>
+
+    <form class="auth-form" method="POST" action="{{ route('register') }}">
         @csrf
-
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        <div class="form-group">
+            <label for="name">Full name</label>
+            <input class="form-control" id="name" type="text" name="name" value="{{ old('name') }}" autocomplete="name" autofocus required>
+            @foreach($errors->get('name') as $message)<p class="form-error">{{ $message }}</p>@endforeach
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <div class="form-group">
+            <label for="email">Email address</label>
+            <input class="form-control" id="email" type="email" name="email" value="{{ old('email') }}" autocomplete="username" required>
+            @foreach($errors->get('email') as $message)<p class="form-error">{{ $message }}</p>@endforeach
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input class="form-control" id="password" type="password" name="password" autocomplete="new-password" required>
+            @foreach($errors->get('password') as $message)<p class="form-error">{{ $message }}</p>@endforeach
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div class="form-group">
+            <label for="password_confirmation">Confirm password</label>
+            <input class="form-control" id="password_confirmation" type="password" name="password_confirmation" autocomplete="new-password" required>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
+        <button class="button button-dark button-wide" type="submit">Create account</button>
     </form>
+
+    <p class="auth-switch">Already registered? <a class="auth-link" href="{{ route('login') }}">Log in</a></p>
 </x-guest-layout>

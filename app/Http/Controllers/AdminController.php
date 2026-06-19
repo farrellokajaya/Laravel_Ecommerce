@@ -222,7 +222,7 @@ class AdminController extends Controller
 
     public function viewOrder()
     {
-        $orders=Order::latest()->all();
+        $orders=Order::with(['user', 'product'])->latest()->get();
 
         return view('admin.vieworders',compact('orders'));
 

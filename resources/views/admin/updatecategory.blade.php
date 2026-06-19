@@ -1,6 +1,5 @@
 @extends('admin.maindesign')
 
-<base href="/public">
 @section('update_category')
 
     @if(session('category_updated_message'))

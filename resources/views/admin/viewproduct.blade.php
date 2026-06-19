@@ -1,6 +1,6 @@
 @extends('admin.maindesign')
 
-<base href="/public">
+
 @section('view_product')
 
 @if(session('deleteproduct_message'))

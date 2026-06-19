@@ -1,5 +1,5 @@
 @extends('admin.maindesign')
-<base href="/public">
+
 @section('add_product')
 
     @if(session('product_message'))
