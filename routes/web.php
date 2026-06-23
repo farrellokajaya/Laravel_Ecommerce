@@ -1,53 +1,66 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\AdminController;
 
+use App\Http\Controllers\Storefront\CartController;
+use App\Http\Controllers\Storefront\CheckoutController;
+use App\Http\Controllers\Storefront\DashboardController;
+use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\InvoiceController;
+use App\Http\Controllers\Storefront\OrderController;
+use App\Http\Controllers\Storefront\ProductController as StorefrontProductController;
+
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+
+use Illuminate\Support\Facades\Route;
 
 
 /* Public Routes */
 
-Route::get('/',[UserController::class,'home'])->name('home');
+Route::get('/',[HomeController::class,'index'])->name('home');
 
-Route::get('/product_details/{id}',[UserController::class,'productDetails'])->name('product_details');
+Route::get('/product_details/{id}',[StorefrontProductController::class,'show'])->name('product_details');
 
-Route::get('/allproducts',[UserController::class,'allProducts'])->name('viewallproducts');
+Route::get('/allproducts',[StorefrontProductController::class,'index'])->name('viewallproducts');
 
 /* Auth User Routes */
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [UserController::class, 'index'])
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
     
-    Route::get('/myorders', [UserController::class, 'myOrders'])
+    Route::get('/myorders', [OrderController::class, 'index'])
         ->name('myorders');
 
-    Route::post('/addtocart/{id}',[UserController::class,'addToCart'])
+    Route::post('/addtocart/{id}',[CartController::class,'store'])
         ->name('add_to_cart');
     
-    Route::get('/cartproduct',[UserController::class,'cartProduct'])
+    Route::get('/cartproduct',[CartController::class,'index'])
         ->name('cartproduct');
     
-    Route::delete('/removecartproducts/{id}',[UserController::class,'removeCartProducts'])
+    Route::delete('/removecartproducts/{id}',[CartController::class,'destroy'])
         ->name('removecartproducts');
     
-    Route::get('/checkout', [UserController::class, 'checkout'])
+    Route::get('/checkout', [CheckoutController::class, 'show'])
         ->name('checkout');
 
-    Route::post('/checkout/payment', [UserController::class, 'checkoutPayment'])
+    Route::post('/checkout/payment', [CheckoutController::class, 'store'])
         ->name('checkout.payment');
     
-     Route::get('/payment/success/{invoiceNumber}', [UserController::class,'paymentSuccess'])
+     Route::get('/payment/success/{invoiceNumber}', [CheckoutController::class,'success'])
         ->name('payment.success');
 
-    Route::get('/invoice/{invoiceNumber}/download', [UserController::class,'downloadInvoice'])
+    Route::get('/invoice/{invoiceNumber}/download', [CheckoutController::class,'download'])
         ->name('invoice.download');
 });
 
 /* Profile Routes */
 Route::middleware('auth')->group(function () {
+
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 
@@ -61,55 +74,56 @@ Route::middleware('auth')->group(function () {
 /* Admin Routes */
 
 Route::middleware('admin')->group(function () {
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
-    ->name('admin.dashboard');
     
-    Route::get('/add_category', [AdminController::class, 'addCategory'])
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
+        ->name('admin.dashboard');
+
+    Route::get('/add_category', [CategoryController::class, 'create'])
         ->name('admin.addcategory');
 
-    Route::post('/add_category', [AdminController::class, 'postAddCategory'])
+    Route::post('/add_category', [CategoryController::class, 'store'])
         ->name('admin.postaddcategory');
 
-    Route::get('/view_category', [AdminController::class, 'viewCategory'])
+    Route::get('/view_category', [CategoryController::class, 'index'])
         ->name('admin.viewcategory');
 
-    Route::delete('/delete_category/{id}', [AdminController::class, 'deleteCategory'])
+    Route::delete('/delete_category/{id}', [CategoryController::class, 'destroy'])
         ->name('admin.categorydelete');
 
-    Route::get('/update_category/{id}', [AdminController::class, 'updateCategory'])
+    Route::get('/update_category/{id}', [CategoryController::class, 'edit'])
         ->name('admin.categoryupdate');
 
-    Route::post('/update_category/{id}', [AdminController::class, 'postUpdateCategory'])
+    Route::post('/update_category/{id}', [CategoryController::class, 'update'])
         ->name('admin.postupdatecategory');
 
-    Route::get('/add_product', [AdminController::class, 'addProduct'])
+    Route::get('/add_product', [AdminProductController::class, 'create'])
         ->name('admin.addproduct');
 
-    Route::post('/add_product', [AdminController::class, 'postAddProduct'])
+    Route::post('/add_product', [AdminProductController::class, 'store'])
         ->name('admin.postaddproduct');
 
-    Route::get('/view_product', [AdminController::class, 'viewProduct'])
+    Route::get('/view_product', [AdminProductController::class, 'index'])
         ->name('admin.viewproduct');
 
-    Route::delete('/deleteproduct/{id}', [AdminController::class, 'deleteProduct'])
+    Route::delete('/deleteproduct/{id}', [AdminProductController::class, 'destroy'])
         ->name('admin.deleteproduct');
 
-    Route::get('/updateproduct/{id}', [AdminController::class, 'updateProduct'])
+    Route::get('/updateproduct/{id}', [AdminProductController::class, 'edit'])
         ->name('admin.updateproduct');
 
-    Route::post('/updateproduct/{id}', [AdminController::class, 'postUpdateProduct'])
+    Route::post('/updateproduct/{id}', [AdminProductController::class, 'update'])
         ->name('admin.postupdateproduct');
 
-    Route::get('/search', [AdminController::class, 'searchProduct'])
+    Route::get('/search', [AdminProductController::class, 'search'])
         ->name('admin.searchproduct');
 
-    Route::get('/vieworder', [AdminController::class, 'viewOrder'])
+    Route::get('/vieworder', [AdminOrderController::class, 'index'])
         ->name('admin.vieworder');
 
-    Route::post('/change_status/{id}', [AdminController::class, 'changeStatus'])
+    Route::post('/change_status/{id}', [AdminOrderController::class, 'updateStatus'])
         ->name('admin.change_status');
 
-    Route::get('/downloadpdf/{id}', [AdminController::class, 'downloadPDF'])
+    Route::get('/downloadpdf/{id}', [AdminOrderController::class, 'downloadPdf'])
         ->name('admin.downloadpdf');
 });
 

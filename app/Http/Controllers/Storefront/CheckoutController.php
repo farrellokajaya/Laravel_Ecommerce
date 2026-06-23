@@ -1,171 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Storefront;
 
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\ProductCart;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\ProductCart;
+use App\Models\Product;
+use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade\Pdf;
 
-class UserController extends Controller
+class CheckoutController extends Controller
 {
-    public function index()
-    {
-        if (auth()->user()->user_type === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return view('dashboard');
-    }
-
-    public function home()
-    {
-        $products = Product::where('product_quantity', '>', 0)
-            ->latest()
-            ->take(8)
-            ->get();
-
-        $categories = Product::where('product_quantity', '>', 0)
-            ->whereNotNull('product_category')
-            ->where('product_category', '!=', '')
-            ->select('product_category')
-            ->distinct()
-            ->orderBy('product_category')
-            ->take(8)
-            ->pluck('product_category');
-
-        return view('index', compact('products', 'categories'));
-    }
-
-    public function productDetails($id)
-    {
-        $product = Product::where('product_quantity', '>', 0)
-            ->findOrFail($id);
-
-        return view('product_details', compact('product'));
-    }
-
-    public function allProducts(Request $request)
-    {
-        $activeSearch = trim((string) $request->query('search', ''));
-        $activeCategory = trim((string) $request->query('category', ''));
-
-        $query = Product::query()
-            ->where('product_quantity', '>', 0);
-
-        if ($activeSearch !== '') {
-            $query->where(function ($productQuery) use ($activeSearch) {
-                $productQuery
-                    ->where('product_title', 'like', '%' . $activeSearch . '%')
-                    ->orWhere('product_description', 'like', '%' . $activeSearch . '%')
-                    ->orWhere('product_category', 'like', '%' . $activeSearch . '%');
-            });
-        }
-
-        if ($activeCategory !== '') {
-            $query->where('product_category', $activeCategory);
-        }
-
-        $products = $query
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
-
-        $categories = Product::where('product_quantity', '>', 0)
-            ->whereNotNull('product_category')
-            ->where('product_category', '!=', '')
-            ->select('product_category')
-            ->distinct()
-            ->orderBy('product_category')
-            ->pluck('product_category');
-
-        return view('allproducts', compact(
-            'products',
-            'categories',
-            'activeSearch',
-            'activeCategory'
-        ));
-    }
-
-    public function addToCart(Request $request, $id)
-    {
-        $product = Product::where('product_quantity', '>', 0)
-            ->findOrFail($id);
-
-        $quantity = max(1, (int) $request->input('quantity', 1));
-        $quantity = min($quantity, (int) $product->product_quantity);
-
-        $existingCart = ProductCart::where('user_id', Auth::id())
-            ->where('product_id', $product->id)
-            ->first();
-
-        if ($existingCart) {
-            $existingCart->quantity = min(
-                (int) $product->product_quantity,
-                (int) $existingCart->quantity + $quantity
-            );
-            $existingCart->save();
-
-            $message = 'Product quantity updated in your cart.';
-        } else {
-            ProductCart::create([
-                'user_id' => Auth::id(),
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-            ]);
-
-            $message = 'Product added to your cart.';
-        }
-
-        if ($request->input('action') === 'checkout') {
-            return redirect()
-                ->route('checkout')
-                ->with('cart_message', $message);
-        }
-
-        return redirect()
-            ->back()
-            ->with('cart_message', $message);
-    }
-
-    public function cartProduct()
-    {
-        $cart = ProductCart::where('user_id', Auth::id())
-            ->with('product')
-            ->latest()
-            ->get();
-
-        return view('viewcartproducts', compact('cart'));
-    }
-
-    public function removeCartProducts($id)
-    {
-        $cartProduct = ProductCart::where('user_id', Auth::id())
-            ->where('id', $id)
-            ->firstOrFail();
-
-        $cartProduct->delete();
-
-        return redirect()
-            ->back()
-            ->with('cart_message', 'Product removed from your cart.');
-    }
-
-    public function myOrders()
-    {
-        $orders = Order::where('user_id', Auth::id())
-            ->with(['product', 'user'])
-            ->latest()
-            ->get();
-
-        return view('viewmyorders', compact('orders'));
-    }
-
-    public function checkout()
+    public function show()
     {
         $cart = ProductCart::where('user_id', Auth::id())
             ->with('product')
@@ -200,7 +48,7 @@ class UserController extends Controller
         return view('stripe', compact('cart', 'total'));
     }
 
-    public function checkoutPayment(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'receiver_name' => 'required|string|max:255',
@@ -349,24 +197,7 @@ class UserController extends Controller
         }
     }
 
-    private function generateInvoiceNumber(): string
-    {
-        do {
-            $invoiceNumber = 'INV-' .
-                now()->format('Ymd') .
-                '-' .
-                strtoupper(Str::random(6));
-        } while (
-            Order::where(
-                'invoice_number',
-                $invoiceNumber
-            )->exists()
-        );
-
-    return $invoiceNumber;
-    }
-
-    public function paymentSuccess(string $invoiceNumber)
+    public function success(string $invoiceNumber)
     {
         $orders = Order::where(
             'invoice_number',
@@ -394,37 +225,20 @@ class UserController extends Controller
         ));
     }
 
-    public function downloadInvoice(string $invoiceNumber)
+    private function generateInvoiceNumber(): string
     {
-        $orders = Order::where(
-            'invoice_number',
-            $invoiceNumber
-        )
-            ->where('user_id', Auth::id())
-            ->where('payment_status', 'paid')
-            ->with(['product', 'user'])
-            ->orderBy('id')
-            ->get();
-
-        abort_if($orders->isEmpty(), 404);
-
-        $firstOrder = $orders->first();
-
-        $total = $orders->sum(function ($order) {
-            return (float) $order->total_price;
-        });
-
-        $pdf = Pdf::loadView('invoices.user', compact(
-            'orders',
-            'firstOrder',
-            'invoiceNumber',
-            'total'
-        ));
-
-        $pdf->setPaper('a4', 'portrait');
-
-        return $pdf->download(
-            $invoiceNumber . '.pdf'
+        do {
+            $invoiceNumber = 'INV-' .
+                now()->format('Ymd') .
+                '-' .
+                strtoupper(Str::random(6));
+        } while (
+            Order::where(
+                'invoice_number',
+                $invoiceNumber
+            )->exists()
         );
+
+    return $invoiceNumber;
     }
 }
