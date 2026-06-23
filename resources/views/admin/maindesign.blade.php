@@ -1,134 +1,162 @@
 <!DOCTYPE html>
-<html>
-  <head> 
+<html lang="en">
+<head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Dark Bootstrap Admin </title>
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="all,follow">
-    <!-- Bootstrap CSS-->
-    <link rel="stylesheet" href="{{ asset('admin/vendor/bootstrap/css/bootstrap.min.css') }}">
-    <!-- Font Awesome CSS-->
-    <link rel="stylesheet" href="{{ asset('admin/vendor/font-awesome/css/font-awesome.min.css') }}">
-    <!-- Custom Font Icons CSS-->
-    <link rel="stylesheet" href="{{ asset('admin/css/font.css') }}">
-    <!-- Google fonts - Muli-->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Muli:300,400,700">
-    <!-- theme stylesheet-->
-    <link rel="stylesheet" href="{{ asset('admin/css/style.default.css') }}" id="theme-stylesheet">
-    <!-- Custom stylesheet - for your changes-->
-    <link rel="stylesheet" href="{{ asset('admin/css/custom.css') }}">
-    <!-- Favicon-->
-    <link rel="shortcut icon" href="{{ asset('admin/img/favicon.ico') }}">
-    <!-- Tweaks for older IEs--><!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
-  </head>
-  <body>
-    <header class="header">   
-      <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid d-flex align-items-center justify-content-between">
-          <div class="navbar-header">
-            <!-- Navbar Header-->
-            <a href="{{ route('admin.dashboard') }}" class="navbar-brand">
-              <div class="brand-text brand-big visible text-uppercase"><strong class="text-primary">Dark</strong><strong>Admin</strong></div>
-              <div class="brand-text brand-sm"><strong class="text-primary">D</strong><strong>A</strong></div></a>
-            <!-- Sidebar Toggle Btn-->
-            <button class="sidebar-toggle"><i class="fa fa-long-arrow-left"></i></button>
-          </div>
-          <div class="right-menu list-inline no-margin-bottom">    
-            <div class="list-inline-item"><a href="#" class="search-open nav-link"><i class="icon-magnifying-glass-browser"></i></a></div>
-            <!-- Log out               -->
-            <div class="list-inline-item logout"></div>
-              <form method="POST" action="{{ route('logout') }}">
-                    @csrf
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Giftos ecommerce administration panel.">
+    <title>@yield('title', 'Admin') · Giftos</title>
 
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-              </form>
-          </div>
-        </div>
-      </nav>
-    </header>
-    <div class="d-flex align-items-stretch">
-      <!-- Sidebar Navigation-->
-      <nav id="sidebar">
-        <!-- Sidebar Header-->
-        <div class="sidebar-header d-flex align-items-center">
-          <div class="avatar"><img src="img/avatar-6.jpg" alt="..." class="img-fluid rounded-circle"></div>
-          <div class="title">
-            <h1 class="h5">Admin</h1>
-            <p>E-Commerce</p>
-          </div>
-        </div>
-        <!-- Sidebar Navidation Menus--><span class="heading">Main</span>
-        <ul class="list-unstyled">
-                <li class="active"><a href="{{ route('admin.dashboard') }}"><i class="icon-home"></i>Home</a></li>
-                <li><a href="#categoryDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-windows"></i>Category</a>
-                  <ul id="categoryDropdown" class="collapse list-unstyled ">
-                    <li><a href="{{route('admin.addcategory')}}">Add Category</a></li>
-                    <li><a href="{{route('admin.viewcategory')}}">View Category</a></li>
-                  </ul>
-                </li>
-                <li><a href="#productdropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-windows"></i>Product</a>
-                  <ul id="productdropdownDropdown" class="collapse list-unstyled ">
-                    <li><a href="{{route('admin.addproduct')}}">Add Product</a></li>
-                    <li><a href="{{route('admin.viewproduct')}}">View Product</a></li>
-                    <li><a href="{{route('admin.vieworder')}}">View Order</a></li>
-                  </ul>
-                </li>
-                
-        </ul>
-      </nav>
-      <!-- Sidebar Navigation end-->
-      <div class="page-content">
-        <div class="page-header">
-          <div class="container-fluid">
-            <h2 class="h5 no-margin-bottom">Admin Dashboard</h2>
-          </div>
-        </div>
-        <section class="no-padding-top no-padding-bottom">
-          @yield('dashboard')
+    <link rel="icon" href="/front_end/images/favicon.png" type="image/png">
+    <link rel="stylesheet" href="/admin/css/admin-modern.css">
+    @stack('styles')
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Admin navigation">
+            <div class="sidebar-brand-row">
+                <a class="admin-brand" href="{{ route('admin.dashboard') }}" aria-label="Giftos admin dashboard">
+                    <span class="admin-brand-mark">G</span>
+                    <span class="admin-brand-copy">
+                        <strong>Giftos</strong>
+                        <small>Admin console</small>
+                    </span>
+                </a>
 
-          @yield('add_category')
-
-          @yield('view_category')
-
-          @yield('update_category')
-
-          @yield('add_product')
-
-          @yield('view_product')
-
-          @yield('update_product')
-
-          @yield('view_orders')
-
-        </section>
-        <!-- end of all section-->
-        <footer class="footer">
-          <div class="footer__block block no-margin-bottom">
-            <div class="container-fluid text-center">
-              <!-- Please do not remove the backlink to us unless you support us at https://bootstrapious.com/donate. It is part of the license conditions. Thank you for understanding :)-->
-               <p class="no-margin-bottom">2018 &copy; Your company. Download From <a target="_blank" href="https://templateshub.net">Templates Hub</a>.</p>
+                <button class="sidebar-close" type="button" data-sidebar-close aria-label="Close navigation">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
             </div>
-          </div>
-        </footer>
-      </div>
-    </div>
-    <!-- JavaScript files-->
-    <script src="{{ asset('admin/vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/popper.js/umd/popper.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/bootstrap/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/jquery.cookie/jquery.cookie.js') }}"></script>
-    <script src="{{ asset('admin/vendor/chart.js/Chart.min.js') }}"></script>
-    <script src="{{ asset('admin/vendor/jquery-validation/jquery.validate.min.js') }}"></script>
-    <script src="{{ asset('admin/js/charts-home.js') }}"></script>
-    <script src="{{ asset('admin/js/front.js') }}"></script>
 
-  </body>
+            <nav class="sidebar-nav">
+                <span class="sidebar-label">Overview</span>
+
+                <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-13h6V4h-6v3Z"/></svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <span class="sidebar-label">Catalog</span>
+
+                <a href="{{ route('admin.viewproduct') }}" class="sidebar-link {{ request()->routeIs('admin.viewproduct', 'admin.searchproduct', 'admin.updateproduct') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7 8 4 8-4v10l-8 4-8-4V7Z"/><path d="M12 11v10"/></svg>
+                    <span>Products</span>
+                </a>
+
+                <a href="{{ route('admin.addproduct') }}" class="sidebar-link {{ request()->routeIs('admin.addproduct') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    <span>Add product</span>
+                </a>
+
+                <a href="{{ route('admin.viewcategory') }}" class="sidebar-link {{ request()->routeIs('admin.viewcategory', 'admin.categoryupdate') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"/></svg>
+                    <span>Categories</span>
+                </a>
+
+                <a href="{{ route('admin.addcategory') }}" class="sidebar-link {{ request()->routeIs('admin.addcategory') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    <span>Add category</span>
+                </a>
+
+                <span class="sidebar-label">Sales</span>
+
+                <a href="{{ route('admin.vieworder') }}" class="sidebar-link {{ request()->routeIs('admin.vieworder') ? 'active' : '' }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l2 5H4l2-5Z"/><path d="M5 8v13h14V8M9 12h6"/></svg>
+                    <span>Orders</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ route('home') }}" class="sidebar-store-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M13 11l6-6"/><path d="M19 13v6H5V5h6"/></svg>
+                    <span>View storefront</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="sidebar-overlay" data-sidebar-overlay></div>
+
+        <div class="admin-workspace">
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Open navigation" aria-controls="adminSidebar" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                    </button>
+
+                    <div class="topbar-heading">
+                        <span class="topbar-eyebrow">Admin panel</span>
+                        <h1>@yield('page_title', 'Dashboard')</h1>
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    @yield('page_actions')
+
+                    <details class="admin-account">
+                        <summary class="admin-account-trigger">
+                            <span class="admin-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}</span>
+                            <span class="admin-account-copy">
+                                <strong>{{ auth()->user()->name ?? 'Admin' }}</strong>
+                                <small>Administrator</small>
+                            </span>
+                            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5"/></svg>
+                        </summary>
+
+                        <div class="admin-account-menu">
+                            <div class="account-menu-summary">
+                                <strong>{{ auth()->user()->name ?? 'Admin' }}</strong>
+                                <span>{{ auth()->user()->email ?? '' }}</span>
+                            </div>
+                            <a href="{{ route('profile.edit') }}">Profile settings</a>
+                            <a href="{{ route('home') }}">Open storefront</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit">Log out</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            </header>
+
+            <main class="admin-main">
+                @if(session('category_message') || session('category_updated_message') || session('product_message') || session('status_message') || session('success'))
+                    <div class="admin-alert admin-alert-success" role="status">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                        <span>{{ session('category_message') ?? session('category_updated_message') ?? session('product_message') ?? session('status_message') ?? session('success') }}</span>
+                        <button type="button" data-alert-close aria-label="Dismiss notification">×</button>
+                    </div>
+                @endif
+
+                @if(session('deletecategory_message') || session('deleteproduct_message') || session('error'))
+                    @php
+                        $adminMessage = session('deletecategory_message') ?? session('deleteproduct_message') ?? session('error');
+                        $isBlockedMessage = str_contains(strtolower($adminMessage), 'cannot') || str_contains(strtolower($adminMessage), 'failed');
+                    @endphp
+                    <div class="admin-alert {{ $isBlockedMessage ? 'admin-alert-danger' : 'admin-alert-success' }}" role="status">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            @if($isBlockedMessage)
+                                <path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/>
+                            @else
+                                <path d="m5 12 4 4L19 6"/>
+                            @endif
+                        </svg>
+                        <span>{{ $adminMessage }}</span>
+                        <button type="button" data-alert-close aria-label="Dismiss notification">×</button>
+                    </div>
+                @endif
+
+                @yield('content')
+            </main>
+
+            <footer class="admin-footer">
+                <span>&copy; {{ date('Y') }} Giftos Admin.</span>
+                <span>Manage your store with confidence.</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/admin/js/admin-modern.js"></script>
+    @stack('scripts')
+</body>
 </html>

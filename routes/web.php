@@ -38,6 +38,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/checkout/payment', [UserController::class, 'checkoutPayment'])
         ->name('checkout.payment');
+    
+     Route::get('/payment/success/{invoiceNumber}', [UserController::class,'paymentSuccess'])
+        ->name('payment.success');
+
+    Route::get('/invoice/{invoiceNumber}/download', [UserController::class,'downloadInvoice'])
+        ->name('invoice.download');
 });
 
 /* Profile Routes */

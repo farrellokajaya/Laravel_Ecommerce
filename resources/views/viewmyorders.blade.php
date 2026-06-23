@@ -49,6 +49,20 @@
                             <span class="status-badge status-{{ $status }}">{{ $order->status ?? 'Pending' }}</span>
                             <span class="status-badge status-{{ $paymentStatus }}">Payment {{ $order->payment_status ?? 'Paid' }}</span>
                             <span class="order-date">{{ optional($order->created_at)->format('d M Y, H:i') }}</span>
+                            @if(
+                                $order->payment_status === 'paid'
+                                && $order->invoice_number
+                            )
+                                <a
+                                    href="{{ route(
+                                        'invoice.download',
+                                        $order->invoice_number
+                                    ) }}"
+                                    class="button button-light button-small"
+                                >
+                                    Download Invoice
+                                </a>
+                            @endif
                         </div>
                     </article>
                 @endforeach
