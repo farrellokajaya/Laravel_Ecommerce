@@ -48,14 +48,8 @@ class CheckoutController extends Controller
         return view('stripe', compact('cart', 'total'));
     }
 
-    public function store(Request $request)
+    public function store(CheckoutPaymentRequest $request)
     {
-        $request->validate([
-            'receiver_name' => 'required|string|max:255',
-            'receiver_address' => 'required|string|max:500',
-            'receiver_phone' => 'required|string|max:20',
-            'stripeToken' => 'required|string',
-        ]);
 
         $userId = Auth::id();
 
