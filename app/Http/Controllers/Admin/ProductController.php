@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
+use App\Services\ProductImageService;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly ProductImageService $productImageService
+    ) {
+    }
+
     public function create()
     {
         $categories = Category::orderBy('category')->get();
@@ -36,12 +42,9 @@ class ProductController extends Controller
         $product->product_category = $request->product_category;
 
         if ($request->hasFile('product_image')) {
-            $image = $request->file('product_image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-
-            $image->move(public_path('products'), $imageName);
-
-            $product->product_image = $imageName;
+            $product->product_image = $this->productImageService->store(
+                $request->file('product_image')
+            );
         }
 
         $product->save();
@@ -65,22 +68,24 @@ class ProductController extends Controller
         if (Order::where('product_id', $product->id)->exists()) {
             return redirect()
                 ->back()
-                ->with('deleteproduct_message', 'Product cannot be deleted because it is linked to an existing order.');
+                ->with(
+                    'deleteproduct_message',
+                    'Product cannot be deleted because it is linked to an existing order.'
+                );
         }
 
-        if ($product->product_image) {
-            $imagePath = public_path('products/' . $product->product_image);
-
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
-            }
-        }
+        $this->productImageService->delete(
+            $product->product_image
+        );
 
         $product->delete();
 
         return redirect()
             ->back()
-            ->with('deleteproduct_message', 'Product deleted successfully!');
+            ->with(
+                'deleteproduct_message',
+                'Product deleted successfully!'
+            );
     }
 
     public function edit($id)
@@ -111,20 +116,10 @@ class ProductController extends Controller
         $product->product_category = $request->product_category;
 
         if ($request->hasFile('product_image')) {
-            if ($product->product_image) {
-                $oldImagePath = public_path('products/' . $product->product_image);
-
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
-
-            $image = $request->file('product_image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-
-            $image->move(public_path('products'), $imageName);
-
-            $product->product_image = $imageName;
+            $product->product_image = $this->productImageService->replace(
+                $product->product_image,
+                $request->file('product_image')
+            );
         }
 
         $product->save();
@@ -153,4 +148,5 @@ class ProductController extends Controller
 
         return view('admin.viewproduct', compact('products'));
     }
+
 }
