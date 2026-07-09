@@ -54,7 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
      Route::get('/payment/success/{invoiceNumber}', [CheckoutController::class,'success'])
         ->name('payment.success');
 
-    Route::get('/invoice/{invoiceNumber}/download', [CheckoutController::class,'download'])
+    Route::get('/invoice/{invoiceNumber}/download', [InvoiceController::class,'download'])
         ->name('invoice.download');
 });
 
@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
 
 /* Admin Routes */
 
-Route::middleware('admin')->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
         ->name('admin.dashboard');

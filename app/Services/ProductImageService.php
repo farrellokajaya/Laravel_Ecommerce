@@ -3,16 +3,18 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class ProductImageService
 {
     public function store(UploadedFile $image): string
     {
-        $imageName = time()
-            . '_'
-            . uniqid()
-            . '.'
-            . $image->getClientOriginalExtension();
+        File::ensureDirectoryExists(public_path('products'));
+
+        $extension = strtolower($image->getClientOriginalExtension());
+
+        $imageName = now()->timestamp . '_' . Str::uuid() . '.' . $extension;
 
         $image->move(public_path('products'), $imageName);
 
@@ -32,10 +34,8 @@ class ProductImageService
         }
     }
 
-    public function replace(
-        ?string $oldImageName,
-        UploadedFile $newImage
-    ): string {
+    public function replace(?string $oldImageName, UploadedFile $newImage): string
+    {
         $this->delete($oldImageName);
 
         return $this->store($newImage);

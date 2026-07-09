@@ -10,6 +10,7 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Http\Requests\Storefront\CheckoutPaymentRequest;
 
 class CheckoutController extends Controller
 {
