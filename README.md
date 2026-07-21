@@ -1,91 +1,112 @@
 # Laravel Ecommerce
 
-A portfolio-ready ecommerce web application built with Laravel, Blade, MySQL/MariaDB, Stripe test payment, product management, cart, order history, and PDF invoice generation.
+A full-stack ecommerce web application built with Laravel, Blade, and MariaDB. The application provides product discovery, shopping-cart management, Stripe test payments, order processing, PDF invoices, and role-based administration.
 
-This project is designed as a full-stack Laravel ecommerce case study with separate storefront and admin workflows.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel-ecommerce-cqfh.onrender.com/)
+[![Laravel](https://img.shields.io/badge/Laravel_12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com/)
 
----
+## Overview
 
-## Features
+This project demonstrates a complete ecommerce workflow for customers and administrators.
+
+Customers can browse products, manage a cart, complete a Stripe test payment, view their orders, and download invoices. Administrators can manage categories, products, stock, and order statuses through a protected dashboard.
+
+## Key Features
 
 ### Storefront
 
-- Public homepage with latest available products
-- Product listing with search and category filter
-- Product detail page
-- Add to cart with quantity support
-- Cart management
-- Checkout form with receiver name, address, and phone number
-- Stripe test payment flow
-- Payment success page
-- User order history
-- User invoice download as PDF
+- Responsive ecommerce homepage
+- Latest-product showcase
+- Product catalog
+- Search and category filtering
+- Product detail pages
+- Product quantity selection
+- Stock availability validation
 
-### Admin Panel
+### Cart and Checkout
 
-- Admin dashboard summary
-- Category management
-  - Create category
-  - View categories
-  - Update category
-  - Delete category only when it is not used by products
-- Product management
-  - Create product
-  - Upload product image
-  - View products with pagination
-  - Search products
-  - Update product
-  - Delete product only when it is not linked to an order
-- Order management
-  - View orders
-  - Search and filter orders
-  - Update order status
-  - Download admin invoice PDF
+- Add products to cart
+- Update quantities through the cart flow
+- Remove cart items
+- Calculate order totals
+- Collect receiver information
+- Process Stripe test payments
+- Create orders only after successful payment
+- Reduce stock based on purchased quantities
+- Clear the cart after successful payment
 
-### Security and Validation
+### Orders and Invoices
 
-- Laravel authentication using Breeze
-- User and admin role separation with `user_type`
-- Authenticated checkout route
-- Invoice access restricted to the order owner
-- Product image validation by type and size
-- Product stock validation before checkout
-- Order creation only after successful Stripe payment
-- Cart is cleared after successful payment
-- Stock is reduced after successful payment
+- Customer order history
+- Payment and delivery statuses
+- Unique invoice numbers
+- Customer PDF invoice download
+- Administrator PDF invoice download
+- Order ownership validation
 
----
+### Administration
+
+- Protected administrator dashboard
+- Category CRUD
+- Product CRUD
+- Product-image upload
+- Product search and pagination
+- Order search and filtering
+- Order-status management
+- Deletion protection for related records
+
+### Security
+
+- Laravel Breeze authentication
+- User and administrator role separation
+- Protected checkout and order routes
+- Authorization checks for invoices
+- Server-side validation
+- Product stock validation
+- Environment-based credentials
+- Production debug protection
 
 ## Tech Stack
 
-- Laravel 12
+### Backend
+
 - PHP 8.2+
-- Blade template engine
-- MySQL / MariaDB
-- Laravel Breeze authentication
+- Laravel 12
+- Laravel Breeze
 - Stripe PHP SDK
-- Stripe test mode
-- DomPDF for invoice PDF generation
+- DomPDF
+
+### Frontend
+
+- Blade
+- Tailwind CSS
+- Alpine.js
 - Vite
-- Tailwind CSS / custom CSS
-- Docker Compose / Laravel Sail runtime
+- Custom responsive CSS
 
----
+### Database and Infrastructure
 
-## Main Packages
+- MySQL / MariaDB
+- Docker
+- Apache
+- Render
+- Git and GitHub
 
-```json
-{
-  "php": "^8.2",
-  "laravel/framework": "^12.0",
-  "barryvdh/laravel-dompdf": "^3.1",
-  "stripe/stripe-php": "^20.2",
-  "laravel/breeze": "^2.4",
-  "laravel/sail": "^1.62"
-}
+## Application Workflow
+
+```text
+Browse product
+      ↓
+Add to cart
+      ↓
+Enter receiver information
+      ↓
+Complete Stripe test payment
+      ↓
+Create order and reduce stock
+      ↓
+View order and download invoice
 ```
-
----
 
 ## Project Structure
 
@@ -94,265 +115,131 @@ app/
 ├── Http/
 │   ├── Controllers/
 │   │   ├── Admin/
-│   │   │   ├── CategoryController.php
-│   │   │   ├── DashboardController.php
-│   │   │   ├── OrderController.php
-│   │   │   └── ProductController.php
 │   │   └── Storefront/
-│   │       ├── CartController.php
-│   │       ├── CheckoutController.php
-│   │       ├── DashboardController.php
-│   │       ├── HomeController.php
-│   │       ├── InvoiceController.php
-│   │       ├── OrderController.php
-│   │       └── ProductController.php
 │   ├── Middleware/
-│   │   └── AdminMiddleware.php
 │   └── Requests/
 ├── Models/
-│   ├── Category.php
-│   ├── Order.php
-│   ├── Product.php
-│   ├── ProductCart.php
-│   └── User.php
 └── Services/
-    └── ProductImageService.php
 
 resources/views/
 ├── admin/
 ├── auth/
 ├── invoices/
 ├── partials/
-├── index.blade.php
-├── allproducts.blade.php
-├── product_details.blade.php
-├── stripe.blade.php
-├── payment-success.blade.php
-├── viewcartproducts.blade.php
-└── viewmyorders.blade.php
+└── storefront views
+
+database/
+├── factories/
+├── migrations/
+└── seeders/
 
 public/
 ├── admin/
 ├── front_end/
-├── build/
 └── products/
 ```
 
----
+## Getting Started
 
-## Main Routes
+### Prerequisites
 
-### Public Routes
-
-| Method | URL | Description |
-|---|---|---|
-| GET | `/` | Homepage |
-| GET | `/allproducts` | Product listing, search, and category filter |
-| GET | `/product_details/{id}` | Product detail page |
-
-### Authenticated User Routes
-
-| Method | URL | Description |
-|---|---|---|
-| GET | `/dashboard` | User dashboard redirect/page |
-| GET | `/myorders` | User order history |
-| POST | `/addtocart/{id}` | Add product to cart |
-| GET | `/cartproduct` | View cart |
-| DELETE | `/removecartproducts/{id}` | Remove cart item |
-| GET | `/checkout` | Checkout page |
-| POST | `/checkout/payment` | Process Stripe payment |
-| GET | `/payment/success/{invoiceNumber}` | Payment success page |
-| GET | `/invoice/{invoiceNumber}/download` | Download user invoice PDF |
-
-### Admin Routes
-
-| Method | URL | Description |
-|---|---|---|
-| GET | `/admin/dashboard` | Admin dashboard |
-| GET / POST | `/add_category` | Create category |
-| GET | `/view_category` | View categories |
-| GET / POST | `/update_category/{id}` | Update category |
-| DELETE | `/delete_category/{id}` | Delete category |
-| GET / POST | `/add_product` | Create product |
-| GET | `/view_product` | View products |
-| GET / POST | `/updateproduct/{id}` | Update product |
-| DELETE | `/deleteproduct/{id}` | Delete product |
-| GET | `/search` | Search product in admin panel |
-| GET | `/vieworder` | View orders |
-| POST | `/change_status/{id}` | Update order status |
-| GET | `/downloadpdf/{id}` | Download admin invoice PDF |
-
----
-
-## Database Tables
-
-The application uses Laravel migrations for the main ecommerce entities:
-
-- `users`
-- `categories`
-- `products`
-- `product_carts`
-- `orders`
-- `sessions`
-- `cache`
-- `jobs`
-
-Important ecommerce fields include:
-
-- `users.user_type`
-- `products.product_title`
-- `products.product_description`
-- `products.product_quantity`
-- `products.product_prices`
-- `products.product_image`
-- `products.product_category`
-- `product_carts.quantity`
-- `orders.receiver_name`
-- `orders.receiver_address`
-- `orders.receiver_phone`
-- `orders.quantity`
-- `orders.unit_price`
-- `orders.total_price`
-- `orders.payment_status`
-- `orders.status`
-- `orders.stripe_payment_id`
-- `orders.invoice_number`
-
----
-
-## Requirements
-
-For local development with Docker:
-
-- Windows with PowerShell
-- Docker Desktop
-- WSL enabled
-- Git
-- Composer dependencies installed in the project or available through the Docker container
-- Node dependencies installed in the project or available through the Docker container
-
-For production deployment:
-
-- PHP 8.2+
+- PHP 8.2 or newer
 - Composer
-- MySQL or MariaDB database
-- Node.js and npm for Vite build
-- PHP extensions commonly required by Laravel, including:
-  - `pdo_mysql`
-  - `mbstring`
-  - `openssl`
-  - `fileinfo`
-  - `xml`
-  - `dom`
-  - `ctype`
-  - `json`
-  - `tokenizer`
+- Node.js and npm
+- MySQL or MariaDB
+- Git
 
----
+### 1. Clone the Repository
 
-## Local Installation with Docker Compose
-
-> These commands use `docker compose exec laravel.test` because this project is developed with Docker/Sail services.
-
-### 1. Clone the repository
-
-```powershell
-git clone https://github.com/your-username/your-repository-name.git
-cd your-repository-name
+```bash
+git clone https://github.com/farrellokajaya/Laravel_Ecommerce.git
+cd Laravel_Ecommerce
 ```
 
-### 2. Copy environment file
+### 2. Install Dependencies
 
-```powershell
-copy .env.example .env
+```bash
+composer install
+npm install
 ```
 
-### 3. Configure local `.env`
+### 3. Configure the Environment
 
-Use MariaDB for Docker local development:
+Copy `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Configure the database and Stripe test credentials:
 
 ```env
 APP_NAME="Laravel Ecommerce"
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://localhost
+APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
-DB_HOST=mariadb
+DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=ecommerce_db
-DB_USERNAME=sail
-DB_PASSWORD=password
+DB_DATABASE=ecommerce
+DB_USERNAME=root
+DB_PASSWORD=
 
-STRIPE_KEY=pk_test_your_stripe_publishable_key
-STRIPE_SECRET=sk_test_your_stripe_secret_key
+STRIPE_KEY=pk_test_your_publishable_key
+STRIPE_SECRET=sk_test_your_secret_key
 ```
 
-Do not commit your real `.env` file to GitHub.
+Never commit the `.env` file or real credentials.
 
-### 4. Start Docker containers
+### 4. Prepare the Application
 
-```powershell
-docker compose up -d
+```bash
+php artisan key:generate
+php artisan migrate
+npm run build
 ```
 
-### 5. Install PHP dependencies
+If public storage is required:
 
-```powershell
-docker compose exec laravel.test composer install
+```bash
+php artisan storage:link
 ```
 
-### 6. Install JavaScript dependencies
+### 5. Start Development
 
-```powershell
-docker compose exec laravel.test npm install
+```bash
+composer run dev
 ```
 
-### 7. Generate application key
+Alternatively, run the services separately:
 
-```powershell
-docker compose exec laravel.test php artisan key:generate
+```bash
+php artisan serve
+npm run dev
 ```
 
-### 8. Run database migrations
-
-```powershell
-docker compose exec laravel.test php artisan migrate
-```
-
-### 9. Build frontend assets
-
-```powershell
-docker compose exec laravel.test npm run build
-```
-
-### 10. Clear Laravel cache
-
-```powershell
-docker compose exec laravel.test php artisan optimize:clear
-```
-
-### 11. Open the application
+Open:
 
 ```text
-http://localhost
+http://localhost:8000
 ```
 
----
+## Creating an Administrator
 
-## Creating an Admin User Locally
+Register a regular account, then open Laravel Tinker:
 
-The project uses the `user_type` column to separate regular users and admin users.
-
-Register a normal user first from the browser, then update the user role to admin.
-
-Example using Laravel Tinker:
-
-```powershell
-docker compose exec laravel.test php artisan tinker
+```bash
+php artisan tinker
 ```
 
-Inside Tinker:
+Update the intended account:
 
 ```php
 $user = App\Models\User::where('email', 'your-email@example.com')->first();
@@ -361,272 +248,84 @@ $user->email_verified_at = now();
 $user->save();
 ```
 
-Exit Tinker:
+Do not expose administrator credentials in public documentation.
 
-```php
-exit
-```
+## Stripe Test Mode
 
----
+The project is intended to use Stripe test mode for portfolio demonstrations.
 
-## Stripe Test Mode Setup
-
-This project is intended to use Stripe test mode for portfolio usage.
-
-Add your Stripe test keys to `.env`:
-
-```env
-STRIPE_KEY=pk_test_your_publishable_key
-STRIPE_SECRET=sk_test_your_secret_key
-```
-
-Use Stripe test card for successful payment testing:
+Example successful test card:
 
 ```text
 Card number: 4242 4242 4242 4242
 Expiry: any future date
-CVC: any 3 digits
+CVC: any three digits
 ```
 
-Do not use live Stripe keys for a public portfolio demo unless the project is prepared for real transactions.
+Never use live Stripe keys unless the application has been prepared for real transactions.
 
----
+## Quality Checks
 
-## Product Images
+Run the automated test suite:
 
-Product images are stored locally in:
-
-```text
-public/products
+```bash
+composer test
 ```
 
-This is acceptable for a portfolio deployment if the product images are fixed demo assets and no new images will be uploaded after deployment.
+Check registered routes:
 
-If the deployed application needs dynamic product image uploads, use persistent external storage such as Cloudinary, Supabase Storage, or S3-compatible storage.
-
----
-
-## Invoice PDF
-
-The application uses DomPDF to generate invoices.
-
-User invoice route:
-
-```text
-/invoice/{invoiceNumber}/download
+```bash
+php artisan route:list
 ```
 
-User invoice access is restricted by:
+Check migration status:
 
-- authenticated user ID
-- invoice number
-- paid payment status
-
-Admin invoice route:
-
-```text
-/downloadpdf/{id}
+```bash
+php artisan migrate:status
 ```
 
----
+Clear cached configuration:
 
-## Common Development Commands
-
-### Check routes
-
-```powershell
-docker compose exec laravel.test php artisan route:list
+```bash
+php artisan optimize:clear
 ```
 
-### Check migration status
+Create production assets:
 
-```powershell
-docker compose exec laravel.test php artisan migrate:status
+```bash
+npm run build
 ```
 
-### Run migrations
+## Deployment
 
-```powershell
-docker compose exec laravel.test php artisan migrate
-```
+The application is deployed using a PHP 8.3 Apache Docker image and an external MariaDB database.
 
-### Clear cache
+Live application:
 
-```powershell
-docker compose exec laravel.test php artisan optimize:clear
-```
+[https://laravel-ecommerce-cqfh.onrender.com/](https://laravel-ecommerce-cqfh.onrender.com/)
 
-### Build assets
+The deployment uses Stripe test mode and is intended for portfolio demonstration only. Free hosting may require additional time to start after a period of inactivity.
 
-```powershell
-docker compose exec laravel.test npm run build
-```
+## Production Checklist
 
-### Run Vite development server
+- Set `APP_ENV=production`
+- Set `APP_DEBUG=false`
+- Configure the correct production `APP_URL`
+- Store credentials in the hosting dashboard
+- Use a production database connection
+- Use Stripe test keys for the portfolio demo
+- Run migrations with `php artisan migrate --force`
+- Cache optimized Laravel configuration
+- Confirm `.env`, logs, database dumps, and credentials are not committed
 
-```powershell
-docker compose exec laravel.test npm run dev
-```
+## Project Status
 
-### Run tests
+The main customer and administrator ecommerce workflows are complete. Future improvements may include automated feature tests, external media storage, inventory alerts, and email notifications.
 
-```powershell
-docker compose exec laravel.test php artisan test
-```
+## Author
 
-### Check PHP syntax
+**Farrel Lokajaya**
 
-```powershell
-docker compose exec laravel.test sh -c "find app routes database config -name '*.php' -print0 | xargs -0 -n1 php -l"
-```
-
----
-
-## Production Environment Checklist
-
-For production deployment, configure environment variables in the hosting dashboard, not in GitHub.
-
-Required production values:
-
-```env
-APP_NAME="Laravel Ecommerce"
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-deployed-domain.com
-
-DB_CONNECTION=mysql
-DB_HOST=your-production-db-host
-DB_PORT=3306
-DB_DATABASE=your-production-db-name
-DB_USERNAME=your-production-db-username
-DB_PASSWORD=your-production-db-password
-
-SESSION_DRIVER=database
-CACHE_STORE=database
-QUEUE_CONNECTION=database
-
-STRIPE_KEY=pk_test_or_live_key
-STRIPE_SECRET=sk_test_or_live_secret
-```
-
-For portfolio usage, use Stripe test keys:
-
-```text
-pk_test_...
-sk_test_...
-```
-
----
-
-## Deployment Notes
-
-Before deploying publicly:
-
-- Make sure `.env` is not committed
-- Make sure database dump files such as `.sql` are not committed
-- Make sure `vendor/` and `node_modules/` are not committed
-- Make sure Laravel logs are not committed
-- Make sure `APP_DEBUG=false` in production
-- Set the production document root to `public/`
-- Run `composer install --no-dev --optimize-autoloader`
-- Run `npm install` or `npm ci`
-- Run `npm run build`
-- Run `php artisan migrate --force`
-- Run `php artisan optimize`
-
----
-
-## Suggested Free or Low-Cost Deployment Options
-
-Recommended options for this project:
-
-1. Laravel Cloud
-   - Best Laravel-specific deployment experience
-   - Simple setup for Laravel projects
-   - Good option if a small monthly cost is acceptable
-
-2. Koyeb or Render with external MySQL/MariaDB
-   - Can be used for portfolio deployment
-   - Needs careful setup for environment variables, build commands, and persistent storage
-   - Product images should be committed as demo static assets or moved to external storage
-
-3. Aiven MySQL Free
-   - Useful as an external MySQL database option
-   - Suitable for portfolio or demo deployments with limited usage
-
----
-
-## Testing Checklist
-
-Before pushing or deploying, test these flows:
-
-### User
-
-- Register user
-- Login user
-- Logout user
-- View homepage
-- View all products
-- Search products
-- Filter by category
-- View product detail
-- Add product to cart
-- Update quantity through add-to-cart flow
-- Remove product from cart
-
-### Checkout
-
-- Open checkout with cart items
-- Submit receiver name, address, and phone number
-- Pay using Stripe test card
-- Confirm successful redirect
-- Confirm cart is empty after payment
-- Confirm stock decreases after payment
-- Confirm order appears in user order history
-- Confirm invoice PDF can be downloaded
-
-### Admin
-
-- Login as admin
-- Access admin dashboard
-- Add category
-- Update category
-- Delete unused category
-- Add product with image
-- Update product
-- Delete unused product
-- View orders
-- Filter/search orders
-- Update order status
-- Download admin invoice PDF
-
-### Security
-
-- Access admin page as guest
-- Access admin page as regular user
-- Access checkout as guest
-- Access another user's invoice URL
-- Confirm `APP_DEBUG=false` in production
-- Confirm `.env` is not accessible publicly
-
----
-
-## Notes for Portfolio Reviewers
-
-This project demonstrates:
-
-- Laravel MVC structure
-- Authentication and role-based authorization
-- Ecommerce cart and checkout logic
-- Stripe test payment integration
-- Stock and order transaction handling
-- Invoice PDF generation
-- Admin CRUD management
-- Blade-based UI implementation
-- Docker-based local development workflow
-
----
-
-## License
-
-This project is created for portfolio and educational purposes.
+- [Portofolio](https://farrel-portofolio-liard.vercel.app/)
+- [LinkedIn](https://www.linkedin.com/in/farrel-lokajaya-a25944203/)
+- [GitHub](https://github.com/farrellokajaya)
